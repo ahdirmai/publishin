@@ -56,15 +56,20 @@ npm run dev
 
 ## Instalasi (Docker — Production)
 
+Server pakai Cloudflare Tunnel — tidak perlu SSL cert di server. Lihat [`docs/SERVER_SETUP.md`](docs/SERVER_SETUP.md) untuk panduan lengkap.
+
 ```bash
 cp .env.example .env
-# Edit .env — isi DB_PASSWORD, REVERB_APP_KEY, ANTHROPIC_API_KEY, dll
+# Edit .env — isi DB_PASSWORD, REVERB_APP_KEY, ANTHROPIC_API_KEY,
+#             TELESCOPE_ALLOWED_EMAILS, dll
 
-# Letakkan SSL cert di docker/nginx/ssl/
 docker compose up -d
 
 # Setelah container up
 docker compose exec app php artisan migrate --force
+docker compose exec app php artisan storage:link
+docker compose exec app php artisan config:cache
+docker compose exec app php artisan route:cache
 docker compose exec app php artisan db:seed --class=SubscriptionPlanSeeder
 docker compose exec app php artisan db:seed --class=RolePermissionSeeder
 ```
@@ -124,7 +129,15 @@ resources/js/
 
 docker/
 ├── Dockerfile         # PHP 8.3-fpm-alpine
-└── nginx/default.conf # Nginx + SSL + WebSocket proxy
+├── nginx/default.conf # Nginx HTTP (Cloudflare Tunnel handle SSL)
+└── mysql/my.cnf       # MySQL utf8mb4 + InnoDB tuning
+
+tests/
+├── Feature/           # Auth, Analytics, Posts, Settings
+└── Unit/Services/     # AnalyticsService unit tests
+
+docs/
+└── SERVER_SETUP.md    # Panduan deploy lengkap (Cloudflare Tunnel)
 ```
 
 ## Plans & Pricing
@@ -156,7 +169,7 @@ Lihat [`../docs/TASK_LIST.md`](../docs/TASK_LIST.md) untuk progress lengkap.
 | Phase 3 — Analytics & AI | ✅ Done (v0.4.0) |
 | Phase 4 — Reports, Settings & Notifications | ✅ Done (v0.4.0) |
 | Phase 4.5 — Platform OAuth & Analytics Sync | ✅ Done (v0.4.1) |
-| Phase 5 — Polish & Deploy | 🔲 Planned |
+| Phase 5 — Polish & Deploy | ✅ Done (v0.5.0) |
 
 ### Platform API Status
 

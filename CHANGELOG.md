@@ -4,13 +4,53 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [0.5.0] — 2026-06-03
 
-### Planned — Phase 5
-- Pest unit + feature tests (≥70% coverage)
-- Vitest component tests
-- Playwright E2E flows
-- Deployment: Nginx, Supervisor, Redis, queue workers
+Phase 5 — Polish & Deploy selesai.
+
+### Added
+
+**Laravel Telescope (Monitoring)**
+- Install `laravel/telescope` v5 dengan production auth gate
+- Gate via `TELESCOPE_ALLOWED_EMAILS` env (comma-separated email whitelist)
+- `TELESCOPE_ENABLED` flag — on/off tanpa redeploy
+- Filter: di luar `local`, hanya log exception, failed request, failed job, scheduled task
+- Akses: `/telescope`
+
+**Pest Tests (35 tests, 35 passing)**
+- `tests/Feature/Auth/LoginTest.php` — login sukses/gagal, logout, redirect jika sudah login
+- `tests/Feature/Auth/RegisterTest.php` — register valid, duplicate email, validasi field
+- `tests/Feature/Analytics/AnalyticsControllerTest.php` — overview render, per-konten render, filter days, sync endpoint, auth guard
+- `tests/Feature/Posts/PostControllerTest.php` — compose render, store draft, scheduled_at required, destroy owned/unowned
+- `tests/Feature/Settings/SettingsControllerTest.php` — settings render, profile update, email duplikat, notification toggles
+- `tests/Unit/Services/AnalyticsServiceTest.php` — getOverview keys, getPostList pagination shape
+- Install `pestphp/pest` + `pestphp/pest-plugin-laravel`
+- Tambah `HasFactory` trait ke `Post` dan `SocialAccount` model
+
+**Mobile Responsive Layout**
+- `AppLayout.vue` — sidebar slide-in overlay, `sidebarOpen` ref, backdrop klik-tutup
+- `AppTopbar.vue` — hamburger button (`lg:hidden`), emit `toggle-sidebar`
+- `AppSidebar.vue` — tombol close (×) di mobile, auto-close saat nav item diklik
+- `Analytics/Overview.vue` — `grid-cols-2 lg:grid-cols-4` KPI, `grid-cols-1 lg:grid-cols-2` charts
+- `Analytics/ContentDetail.vue` — `grid-cols-3 sm:grid-cols-4 lg:grid-cols-7` KPI, `grid-cols-1 lg:grid-cols-3` charts
+- `Analytics/PerKonten.vue` — table `overflow-x:auto` sudah ada, filter bar `flex-wrap` sudah ada
+- `Settings/Index.vue` — `grid-cols-1 lg:grid-cols-2`
+- `Reports/Index.vue` — `grid-cols-1 lg:grid-cols-2` untuk config+preview
+- `Compose/Index.vue` — `.g2` class responsive via `@media (min-width:1024px)`
+
+**Empty States**
+- `Analytics/Overview.vue` — banner "Belum ada data analitik" + link ke Settings jika tidak ada reach/topPosts data
+
+**Server Setup (Cloudflare Tunnel)**
+- `docker/nginx/default.conf` — HTTP only (port 80), `fastcgi_param HTTPS on`, Cloudflare handle SSL
+- `docker-compose.yml` — nginx expose `8003:80`, hapus certbot container + volumes
+- `docker/mysql/my.cnf` — utf8mb4, InnoDB buffer 256M, slow query log
+- `CLAUDE.md` — project context untuk Claude Code di server
+- `docs/SERVER_SETUP.md` — panduan deploy lengkap: Docker, Cloudflare Tunnel, env production
+
+### Changed
+- `bootstrap/providers.php` — `TelescopeServiceProvider` registered
+- `.env.example` — tambah `TELESCOPE_ENABLED`, `TELESCOPE_ALLOWED_EMAILS`
 
 ---
 
