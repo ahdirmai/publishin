@@ -31,8 +31,31 @@
 
 /* ─── CSS Custom Properties ─── */
 :root {
+    /* Legacy var names used by Marketing page and some components */
+    --paper:    #FAFAF8;
+    --ink:      #1C1B1A;
+    --ink-2:    #4A4944;
+    --ink-3:    #928E89;
+    --accent-r: #C96442;
+    --accent-b: #3B6DB5;
+    --green:    #2A7A4B;
+    --sticky:   #FFF8C5;
+    --grid:     rgba(170, 185, 210, 0.22);
+
+    --f-sans: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    --f-disp: Georgia, 'Iowan Old Style', serif;
+
     --bdr:   1.5px solid #1C1B1A;
     --bdr-m: 1px solid rgba(28, 27, 26, 0.22);
+    --r:     2px;
+}
+
+html, body {
+    font-family: var(--f-sans);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    background-color: var(--paper);
 }
 
 /* ─── Grid Paper Background ─── */

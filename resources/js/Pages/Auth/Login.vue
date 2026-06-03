@@ -82,6 +82,12 @@ function submit() {
                     <a :href="route('register')" class="text-accent-b hover:underline">Daftar gratis</a>
                 </p>
             </div>
+
+            <div class="mt-4 text-center">
+                <a :href="route('home')" class="text-[10px] font-sans text-ink-3 hover:text-ink">
+                    ← Kembali ke beranda
+                </a>
+            </div>
         </div>
     </div>
 </template>

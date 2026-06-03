@@ -9,6 +9,7 @@ use App\Models\PostVersion;
 use App\Models\SocialAccount;
 use App\Services\InstagramService;
 use App\Services\FacebookService;
+use App\Services\TikTokService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -45,16 +46,27 @@ class PublishScheduledPost implements ShouldQueue
             $version->update(['status' => 'publishing']);
 
             try {
-                $media = $version->getFirstMedia('post_media');
-                $imageUrl = $media?->getUrl('preview');
+                $media    = $version->getFirstMedia('post_media');
+                $mediaUrl = $media?->getUrl();
 
                 $result = match ($version->socialAccount->platform) {
                     'instagram' => (new InstagramService($version->socialAccount))
-                        ->publishImagePost($imageUrl ?? '', $version->caption ?? ''),
+                        ->publishImagePost($media?->getUrl('preview') ?? '', $version->caption ?? ''),
                     'facebook'  => (new FacebookService($version->socialAccount))
-                        ->publishPost($version->caption ?? '', $imageUrl),
+                        ->publishPost($version->caption ?? '', $media?->getUrl('preview')),
+                    'tiktok'    => (new TikTokService($version->socialAccount))
+                        ->publishVideo($mediaUrl ?? '', $version->caption ?? '', $version->platform_options ?? []),
                     default     => ['error' => 'Platform tidak didukung'],
                 };
+
+                // TikTok PULL is async — still processing after max polls is acceptable
+                if (($result['status'] ?? null) === 'processing') {
+                    $version->update([
+                        'status'           => 'publishing',
+                        'platform_post_id' => $result['publish_id'] ?? $result['id'] ?? null,
+                    ]);
+                    continue;
+                }
 
                 if (isset($result['error'])) {
                     throw new \Exception($result['error']);

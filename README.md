@@ -97,7 +97,8 @@ app/
 │   ├── ReportService.php       # Generate client report (queue-based)
 │   ├── NotificationService.php # In-app notifications + setting toggles
 │   ├── InstagramService.php    # Saloon v3 — publish, insights
-│   └── FacebookService.php     # Saloon v3 — publish, insights
+│   ├── FacebookService.php     # Saloon v3 — publish, insights
+│   └── TikTokService.php       # Saloon v3 — publish video (PULL), status poll
 ├── Jobs/
 │   └── PublishScheduledPost.php  # Queue job, retry 3x, exponential backoff
 ├── Console/
@@ -170,12 +171,13 @@ Lihat [`../docs/TASK_LIST.md`](../docs/TASK_LIST.md) untuk progress lengkap.
 | Phase 4 — Reports, Settings & Notifications | ✅ Done (v0.4.0) |
 | Phase 4.5 — Platform OAuth & Analytics Sync | ✅ Done (v0.4.1) |
 | Phase 5 — Polish & Deploy | ✅ Done (v0.5.0) |
+| Phase 5.1 — TikTok Publishing | ✅ Done (v0.5.1) |
 
 ### Platform API Status
 
 | Platform | OAuth | Publish | Import | Analytics Sync |
 |---|---|---|---|---|
-| TikTok | ✅ Approved | 🔲 | ✅ | ✅ |
+| TikTok | ✅ Approved | ✅ | ✅ | ✅ |
 | Instagram | ✅ | 🔲 | ✅ | 🔲 |
 | Facebook | ✅ | 🔲 | 🔲 | 🔲 |
 | YouTube | 🔲 | 🔲 | 🔲 | 🔲 |

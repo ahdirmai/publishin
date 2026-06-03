@@ -4,6 +4,25 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versi
 
 ---
 
+## [0.5.1] — 2026-06-04
+
+TikTok video publishing.
+
+### Added
+
+**TikTok Publishing Engine**
+- `TikTokService.php` (Saloon v3 Connector) — `publishVideo()`, `getPublishStatus()`, `getCreatorInfo()`
+- PULL method: TikTok fetch video dari public URL (`PULL_FROM_URL`), tidak perlu direct upload
+- Async publish flow: init → poll status (max 6×10s) → `PUBLISH_COMPLETE` atau `processing`
+- Sandbox mode otomatis: `TIKTOK_SANDBOX=true` → `privacy_level: SELF_ONLY` (required TikTok sandbox)
+- `platform_options` support: `privacy_level`, `disable_duet`, `disable_comment`, `disable_stitch`, `cover_timestamp_ms`
+- `PublishScheduledPost` job — tambah `'tiktok'` case ke `match`, handle async `processing` state (version tetap `publishing` + `publish_id` disimpan, job tidak fail)
+
+### Changed
+- `PublishScheduledPost.php` — ganti `$imageUrl` ke `$mediaUrl` (`getUrl()` tidak `getUrl('preview')`) agar dapat URL video asli, bukan preview image
+
+---
+
 ## [0.5.0] — 2026-06-03
 
 Phase 5 — Polish & Deploy selesai.

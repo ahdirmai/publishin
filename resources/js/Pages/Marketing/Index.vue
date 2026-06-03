@@ -603,37 +603,15 @@ onMounted(() => {
 </template>
 
 <style>
-:root {
-  --paper: #FAFAF8;
-  --ink: #1C1B1A;
-  --ink-2: #4A4944;
-  --ink-3: #928E89;
-  --accent-r: #C96442;
-  --accent-b: #3B6DB5;
-  --green: #2A7A4B;
-  --sticky: #FFF8C5;
-  --grid: rgba(170,185,210,.22);
-  --f-sans: ui-monospace, 'JetBrains Mono', 'IBM Plex Mono', Menlo, monospace;
-  --f-disp: 'Georgia', 'Iowan Old Style', serif;
-  --bdr: 1.5px solid var(--ink);
-  --bdr-m: 1px solid rgba(28,27,26,.22);
-  --r: 2px;
+html {
+  scroll-behavior: smooth;
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  font-family: var(--f-sans);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink);
-  background-color: var(--paper);
   background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 20px 20px;
   min-height: 100vh;
-  scroll-behavior: smooth;
 }
-button { font-family: var(--f-sans); cursor: pointer; }
-input, textarea, select { font-family: var(--f-sans); }
+button { cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; }
 
