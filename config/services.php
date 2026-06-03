@@ -40,6 +40,11 @@ return [
         'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
     ],
 
+    'threads' => [
+        'client_id'     => env('THREADS_APP_ID'),
+        'client_secret' => env('THREADS_APP_SECRET'),
+    ],
+
     'facebook' => [
         'client_id'     => env('FACEBOOK_APP_ID'),
         'client_secret' => env('FACEBOOK_APP_SECRET'),

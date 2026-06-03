@@ -239,7 +239,7 @@ const notifItems = [
                         </template>
 
                         <!-- Unconnected platforms -->
-                        <template v-for="p in ['instagram','tiktok','facebook','twitter','youtube']" :key="p">
+                        <template v-for="p in ['instagram','tiktok','threads','twitter','youtube']" :key="p">
                             <div
                                 v-if="!accounts.find(a => a.platform === p)"
                                 class="flex flex-col gap-1 px-3 py-2 border border-dashed border-ink-3/25"
@@ -247,18 +247,24 @@ const notifItems = [
                                 <div class="flex items-center justify-between">
                                     <span class="flex items-center gap-2 text-xs font-sans text-ink-3">
                                         <PlatformBadge :platform="p as any" size="sm"/>
-                                        {{ { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', twitter: 'X/Twitter', youtube: 'YouTube' }[p] }}
+                                        {{ { instagram: 'Instagram', tiktok: 'TikTok', threads: 'Threads', twitter: 'X/Twitter', youtube: 'YouTube' }[p] }}
                                     </span>
-                                    <a
-                                        :href="route('social.redirect', p)"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="text-[10px] font-sans text-accent-b hover:underline">
-                                        + Hubungkan ↗
-                                    </a>
+                                    <template v-if="['instagram','tiktok','threads'].includes(p)">
+                                        <a
+                                            :href="route('social.redirect', p)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-[10px] font-sans text-accent-b hover:underline">
+                                            + Hubungkan ↗
+                                        </a>
+                                    </template>
+                                    <span v-else class="text-[9px] font-sans text-ink-3 italic">Segera hadir</span>
                                 </div>
                                 <p v-if="p === 'instagram'" class="text-[9px] font-sans text-ink-3 leading-relaxed">
-                                    Instagram Business/Creator wajib login lewat Facebook. Pastikan akun IG sudah dihubungkan ke Facebook Page.
+                                    Login langsung dengan akun Instagram Business atau Creator.
+                                </p>
+                                <p v-if="p === 'threads'" class="text-[9px] font-sans text-ink-3 leading-relaxed">
+                                    Hubungkan akun Threads untuk publish dan lihat analitik.
                                 </p>
                             </div>
                         </template>
