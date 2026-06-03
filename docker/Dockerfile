@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -13,7 +13,10 @@ RUN apk add --no-cache \
     unzip \
     oniguruma-dev \
     nodejs \
-    npm
+    npm \
+    autoconf \
+    g++ \
+    make
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
@@ -42,7 +45,8 @@ WORKDIR /var/www/html
 COPY --chown=www:www . .
 
 # Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev --no-interaction
+RUN git config --global --add safe.directory /var/www/html \
+    && composer install --optimize-autoloader --no-dev --no-interaction
 
 # Install Node dependencies and build assets
 RUN npm ci && npm run build && rm -rf node_modules
