@@ -1,0 +1,66 @@
+@import url('https://fonts.bunny.net/css?family=jetbrains-mono:400,500,700');
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* ─── Design Tokens (dari wireframe CSS vars) ─── */
+@theme {
+    /* Colors */
+    --color-paper:    #FAFAF8;
+    --color-ink:      #1C1B1A;
+    --color-ink-2:    #4A4944;
+    --color-ink-3:    #928E89;
+    --color-accent-r: #C96442;
+    --color-accent-b: #3B6DB5;
+    --color-forest:   #2A7A4B;
+    --color-sticky:   #FFF8C5;
+
+    /* Fonts */
+    --font-sans:  'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    --font-serif: Georgia, 'Iowan Old Style', ui-serif, serif;
+
+    /* Border radius — editorial flat aesthetic */
+    --radius:    2px;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+    --radius-full: 9999px;
+}
+
+/* ─── CSS Custom Properties ─── */
+:root {
+    --bdr:   1.5px solid #1C1B1A;
+    --bdr-m: 1px solid rgba(28, 27, 26, 0.22);
+}
+
+/* ─── Grid Paper Background ─── */
+.grid-paper {
+    background-color: #FAFAF8;
+    background-image:
+        linear-gradient(rgba(28, 27, 26, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28, 27, 26, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* ─── Typography Utilities ─── */
+.kpi-value {
+    font-family: Georgia, 'Iowan Old Style', ui-serif, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.label-upper {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ─── Border Utilities ─── */
+.border-ink  { border: 1.5px solid #1C1B1A; }
+.border-muted { border: 1px solid rgba(28, 27, 26, 0.22); }

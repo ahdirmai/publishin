@@ -1,0 +1,135 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: publishin_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    networks:
+      - publishin
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - APP_ENV=local
+
+  nginx:
+    image: nginx:alpine
+    container_name: publishin_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    networks:
+      - publishin
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: publishin_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-publishin}
+      MYSQL_USER: ${DB_USERNAME:-publishin}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - publishin
+
+  redis:
+    image: redis:7-alpine
+    container_name: publishin_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - publishin
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: publishin_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --queue=publishing,analytics,ai,reports,notifications,webhooks,default --tries=3 --timeout=90
+    volumes:
+      - .:/var/www/html
+    networks:
+      - publishin
+    depends_on:
+      - mysql
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: publishin_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - publishin
+    depends_on:
+      - mysql
+      - redis
+
+  reverb:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: publishin_reverb
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan reverb:start --port=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - publishin
+    depends_on:
+      - mysql
+      - redis
+
+  horizon:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: publishin_horizon
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan horizon
+    volumes:
+      - .:/var/www/html
+    networks:
+      - publishin
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  publishin:
+    driver: bridge
