@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'instagram' => [
+        'client_id'     => env('INSTAGRAM_CLIENT_ID'),
+        'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
+    ],
+
+    'facebook' => [
+        'client_id'     => env('FACEBOOK_APP_ID'),
+        'client_secret' => env('FACEBOOK_APP_SECRET'),
+    ],
+
 ];

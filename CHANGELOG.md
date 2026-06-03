@@ -6,11 +6,52 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Planned — Phase 2
-- Social platform OAuth (Instagram Graph API, Facebook Pages API)
-- Compose screen (caption editor, media upload, scheduler)
-- Calendar screen (monthly grid + weekly list)
-- Publishing engine (Laravel Queue + exponential backoff retry)
+### Planned — Phase 3
+- Analytics dashboard (overview + per konten + content detail)
+- AI caption generator (Claude API, Bahasa Indonesia)
+- Dashboard KPI + charts (real data)
+
+---
+
+## [0.2.0] — 2026-06-03
+
+Phase 2 — Content Management selesai.
+
+### Added
+
+**Social Platform Connections**
+- `SocialAccountController` — OAuth redirect + callback untuk Instagram & Facebook, disconnect
+- `InstagramService` (Saloon v3) — publishImagePost, getProfile, getMediaInsights
+- `FacebookService` (Saloon v3) — publishPost, getPageInfo, getPostInsights
+- `config/services.php` — instagram + facebook OAuth credentials
+- `.env.example` — INSTAGRAM_CLIENT_ID/SECRET, FACEBOOK_APP_ID/SECRET
+
+**Compose Screen (2.2)**
+- `StorePostRequest` — validasi platforms, caption, scheduled_at, status (Indonesian messages)
+- `PostService` — createPost(), updatePost(), saveDraft(), schedulePost(), deletePost() dengan DB::transaction
+- `PostController` — create, edit, store, update, destroy
+- `Pages/Compose/Index.vue` — 2-kolom: platform checkboxes, caption + char counter, media dropzone, date/time + best-time hint, IG preview panel, hashtag chips AI saran
+
+**Media Upload (2.3)**
+- `MediaController` — upload via Spatie Media Library, ownership check, return thumb/preview URLs
+
+**Calendar Screen (2.4)**
+- `CalendarController` — index (Inertia) + data (JSON API), group posts by date
+- `Pages/Calendar/Index.vue` — prev/next navigation, legend, CalendarGrid, WeeklyTable
+- `Components/calendar/CalendarGrid.vue` — 42-cell Mon-start grid, posts grouped by date
+- `Components/calendar/CalendarCell.vue` — today highlight, status dots, post label truncated
+- `Components/calendar/WeeklyTable.vue` — sortable current-week table, platform + status badges
+
+**Publishing Engine (2.5)**
+- `PublishScheduledPost` Job — queue-based, partial publish per platform, retry 3x, exponential backoff via Laravel `$backoff`
+- `ProcessScheduledPosts` Command — `publishin:process-scheduled`, dispatch jobs for due posts
+- `routes/console.php` — `Schedule::command('publishin:process-scheduled')->everyMinute()`
+
+**Marketing Pages (pre-Phase 2)**
+- `Marketing/Index.vue` — full landing page (hero, features, pricing, testimonials, FAQ, footer)
+- `Marketing/Waitlist.vue` — waitlist signup with Inertia form, app preview mockup
+- `MarketingController` — serve marketing pages + store waitlist
+- `waitlists` migration + `Waitlist` model
 
 ---
 

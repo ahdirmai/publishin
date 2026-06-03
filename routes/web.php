@@ -4,12 +4,21 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\SocialAccountController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Public marketing routes
+Route::get('/', [MarketingController::class, 'index'])->name('home');
+Route::get('/waitlist', [MarketingController::class, 'waitlist'])->name('waitlist');
+Route::post('/waitlist', [MarketingController::class, 'storeWaitlist'])->name('waitlist.store');
+
 // Guest routes
 Route::middleware('guest')->group(function () {
-    Route::get('/',       fn() => redirect()->route('login'));
     Route::get('/login',  [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
     Route::get('/register',  [RegisterController::class, 'create'])->name('register');
@@ -22,9 +31,30 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    // TODO Phase 2: Calendar, Compose
-    // TODO Phase 3: Analytics, Content Detail
-    // TODO Phase 4: Reports, Settings
+    // Phase 2 — Compose
+    Route::get('/compose', [PostController::class, 'create'])->name('compose');
+    Route::get('/compose/{post}/edit', [PostController::class, 'edit'])->name('compose.edit');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // Phase 2 — Calendar
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+    Route::get('/api/v1/calendar', [CalendarController::class, 'data'])->name('calendar.data');
+
+    // Phase 2 — Media upload
+    Route::post('/api/v1/media/upload', [MediaController::class, 'store'])->name('media.upload');
+    Route::delete('/api/v1/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+    // Phase 2 — Social Accounts (platform connections)
+    Route::get('/auth/{platform}/redirect', [SocialAccountController::class, 'redirect'])->name('social.redirect');
+    Route::get('/auth/{platform}/callback', [SocialAccountController::class, 'callback'])->name('social.callback');
+    Route::delete('/social-accounts/{account}', [SocialAccountController::class, 'destroy'])
+        ->name('social.destroy')
+        ->can('delete', 'account');
+
+    // Phase 3 — Analytics, Content Detail
+    // Phase 4 — Reports, Settings
 
     // Email verification
     Route::get('/email/verify', function () {

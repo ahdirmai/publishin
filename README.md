@@ -73,22 +73,41 @@ docker compose exec app php artisan db:seed --class=RolePermissionSeeder
 ```
 app/
 ├── Http/Controllers/
-│   ├── Auth/          # Login, Register, ForgotPassword
-│   └── DashboardController.php
-├── Models/            # User, Post, SocialAccount, Subscription, dll
+│   ├── Auth/                   # Login, Register, ForgotPassword
+│   ├── DashboardController.php
+│   ├── PostController.php      # CRUD post
+│   ├── MediaController.php     # Upload via Spatie Media Library
+│   ├── CalendarController.php  # Calendar index + JSON API
+│   ├── SocialAccountController.php  # OAuth Instagram/Facebook
+│   └── MarketingController.php # Landing page + waitlist
+├── Http/Requests/
+│   └── StorePostRequest.php    # Validasi post (pesan Bahasa Indonesia)
+├── Models/            # User, Post, SocialAccount, Subscription, Waitlist, dll
+├── Services/
+│   ├── PostService.php         # createPost, schedulePost, saveDraft
+│   ├── InstagramService.php    # Saloon v3 — publish, insights
+│   └── FacebookService.php     # Saloon v3 — publish, insights
+├── Jobs/
+│   └── PublishScheduledPost.php  # Queue job, retry 3x, exponential backoff
+├── Console/
+│   └── Commands/ProcessScheduledPosts.php  # publishin:process-scheduled
 └── Http/Middleware/   # HandleInertiaRequests, CheckSubscriptionLimit
 
 database/
-├── migrations/        # 17 migrations
+├── migrations/        # 18 migrations (+ waitlists)
 ├── seeders/           # SubscriptionPlanSeeder, RolePermissionSeeder
 └── factories/         # UserFactory (withPlan), SocialAccountFactory, PostFactory
 
 resources/js/
 ├── Pages/             # Inertia pages
 │   ├── Auth/          # Login, Register, ForgotPassword, VerifyEmail
-│   └── Dashboard/     # Index
+│   ├── Dashboard/     # Index
+│   ├── Compose/       # Index — 2-col editor, IG preview, hashtag chips
+│   ├── Calendar/      # Index — monthly grid + weekly table
+│   └── Marketing/     # Index (landing page), Waitlist
 ├── Layouts/           # AppLayout (sidebar + topbar + hatch SVG defs)
 ├── Components/
+│   ├── calendar/      # CalendarGrid, CalendarCell, WeeklyTable
 │   ├── layout/        # AppSidebar, AppTopbar, StickyNote
 │   └── ui/            # AppButton, AppCard, AppToggle, AppProgress,
 │                      # KpiCard, PlatformBadge, StatusBadge, HashtagChip
@@ -123,11 +142,11 @@ Lihat [`../docs/TASK_LIST.md`](../docs/TASK_LIST.md) untuk progress lengkap.
 
 | Phase | Status |
 |---|---|
-| Phase 1 — Foundation & Auth | 98% ✓ |
-| Phase 2 — Content Management | Belum mulai |
-| Phase 3 — Analytics & AI | Belum mulai |
-| Phase 4 — Reports & Settings | Belum mulai |
-| Phase 5 — Polish & Deploy | Belum mulai |
+| Phase 1 — Foundation & Auth | ✅ Done (v0.1.0) |
+| Phase 2 — Content Management | ✅ Done (v0.2.0) |
+| Phase 3 — Analytics & AI | 🔲 Planned |
+| Phase 4 — Reports & Settings | 🔲 Planned |
+| Phase 5 — Polish & Deploy | 🔲 Planned |
 
 ## License
 
