@@ -6,10 +6,102 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Planned — Phase 3
-- Analytics dashboard (overview + per konten + content detail)
-- AI caption generator (Claude API, Bahasa Indonesia)
-- Dashboard KPI + charts (real data)
+### Planned — Phase 5
+- Pest unit + feature tests (≥70% coverage)
+- Vitest component tests
+- Playwright E2E flows
+- Deployment: Nginx, Supervisor, Redis, queue workers
+
+---
+
+## [0.4.1] — 2026-06-03
+
+Platform OAuth production-ready + Analytics Sync.
+
+### Added
+
+**TikTok Integration — App Review Approved ✅**
+- TikTok OAuth v2 dengan PKCE (Proof Key for Code Exchange) di `SocialAccountController`
+- Scopes live: `user.info.basic`, `user.info.profile`, `user.info.stats`, `video.list`, `video.upload`, `video.publish`
+- `AnalyticsSyncService::importTikTokPosts()` — tarik video dari `/v2/video/list/`, buat `Post` + `PostVersion` otomatis, download thumbnail via Spatie Media Library
+- Sync analytics per-video via `/v2/video/query/` — reach, like, comment, share
+- `embed_link` disimpan ke `post_url` untuk video preview
+
+**Instagram & Facebook OAuth**
+- Instagram redirect lewat Facebook Graph API (bukan Instagram Basic Display API) — required untuk content publishing
+- `handleInstagramCallback` — exchange code → user token → page tokens → IG Business Account linked ke FB Page
+- Import post Instagram: `/me/accounts` → `/media` → `PostVersion` + thumbnail download
+
+**Analytics Sync (PerKonten page)**
+- "Sync Data" button di filter bar — import semua post dari platform + update analytics
+- Per-row "Sync" button di expand panel — sync satu post
+- Spinner + pesan hasil, reload data setelah sync
+
+**Content Detail Improvements**
+- KPI cards baca dari `post_versions.analytics_sum_*` (fix: sebelumnya baca tabel `post_analytics` yang kosong)
+- Panel "Preview Post" — mock frame platform dengan avatar, username, gambar, caption
+- Panel "Preview Video" — TikTok embed via `<iframe>`, fallback thumbnail + link
+- Response tambah: `post_url`, `preview_url`, `platform_post_id`, `platform_username`
+
+**Privacy Policy & Terms of Service**
+- `/privacy` — 11 section termasuk section TikTok data eksplisit (wajib App Review)
+- `/terms` — 14 section, hukum Indonesia (Pasal 1313 KUHPerdata)
+- Footer links di landing page diperbarui
+
+**Infrastructure**
+- `trustProxies(at: '*')` di `bootstrap/app.php` — fix HTTPS mixed content di balik reverse proxy / Herd Expose
+- `URL::forceScheme('https')` di `AppServiceProvider` — force HTTPS bila `APP_URL` https
+- Migration `add_analytics_columns_to_post_versions` — 8 kolom analytics langsung di `post_versions`
+- Migration `add_thumbnail_url_to_post_versions` — kolom fallback URL thumbnail external
+- `PostVersion::$fillable` diperluas dengan semua kolom analytics + `thumbnail_url`, `caption`
+
+### Fixed
+- `analytics_sum_reach` column not found in ORDER clause — `withSum()` tidak bisa di-ORDER BY dalam query dengan JOIN, ganti baca kolom langsung dari `post_versions`
+- TikTok token parsing — token di root response `{access_token:...}` bukan `data.access_token`
+- TikTok `fields` parameter wajib di query string URL, bukan request body
+- `posts.title` truncation — caption TikTok bisa >255 chars, pakai `mb_substr(caption, 0, 255)`
+- Duplicate `Post` per video — ganti `firstOrCreate(title)` ke lookup by `platform_post_id` dulu
+- `caption` kosong di PostVersion imported — sekarang disimpan saat import sehingga title muncul di analytics
+
+---
+
+## [0.4.0] — 2026-06-03
+
+Phase 4 — Reports, Settings & Notifications selesai.
+
+### Added
+
+**Reports (4.1)**
+- `ClientReport` model + `client_reports` migration (platforms JSON, 5 include booleans, status lifecycle)
+- `ReportService` — queue(), getHistory(), getPreviewData()
+- `GenerateClientReport` Job — 2 tries, 120s timeout, backoff [60,300], saves .txt to `storage/app/reports/{user_id}/`
+- `ReportController` — index, store, preview, download
+- `Pages/Reports/Index.vue` — period presets, custom date range, platform checkboxes, include section, live preview card, history table with download links
+
+**Settings (4.2)**
+- `NotificationSetting` model + migration (5 boolean toggles per user)
+- `SettingsController` — index, updateProfile, updateNotifications
+- `Pages/Settings/Index.vue` — 2-kolom: profil+platform kiri (avatar inisial, nama/email/timezone form, platform connections), notif+billing kanan (5 AppToggle items, Plan & Billing card)
+
+**Notification System (4.4)**
+- `NotificationService` — getForUser(), getUnreadCount(), markAllRead(), markRead(), send() with NotificationSetting toggle checks
+- `NotificationController` — index (list + unread count JSON), markAllRead, markRead
+- `HandleInertiaRequests` — shared `notif_count` (live unread count injected into every Inertia response)
+- `AppTopbar.vue` — badge shows real unread count from `$page.props.notif_count`, hidden when zero
+
+**AI Integration (Phase 3 continuation)**
+- `AIController` — generateCaption, suggestHashtags, bestTime (delegates to AIService, 429 on quota exceeded)
+- `AIService` — Claude API claude-sonnet-4-6, rate limiting 5/min + 50/day per user
+- `Pages/Compose/Index.vue` — "✦ AI Generate" and "✦ Saran AI" buttons wired to real endpoints
+
+**Analytics (Phase 3)**
+- `AnalyticsService` — getDashboard(), getOverview(), getPostList(), getPostDetail() with Redis caching (30min/1hr)
+- `AnalyticsController` — overview, perKonten, contentDetail, overviewData, postListData
+- `Pages/Analytics/Overview.vue` — KPI cards, reach bar chart SVG, follower growth multi-line SVG, audience demographics, period/platform filters
+- `Pages/Analytics/PerKonten.vue` — paginated post table, expandable rows with metric cards + distribution bars
+- `Pages/Analytics/ContentDetail.vue` — 7-col KPI row, daily reach SVG, vs rata-rata comparison, AI insights panel
+- `Pages/Dashboard/Index.vue` — real KPI data, engagement trend SVG, postsPerPlatform bar chart, recent posts table, notifications panel, best times widget
+- `FetchPostAnalytics` Job + `publishin:fetch-account-analytics` command (daily 02:00)
 
 ---
 

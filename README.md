@@ -18,7 +18,8 @@ Platform manajemen media sosial untuk UMKM dan digital agency Indonesia — harg
 ## Fitur Utama
 
 - **Content Scheduler** — Jadwalkan konten ke Instagram, Facebook, TikTok, Twitter/X, YouTube
-- **Analytics Dashboard** — KPI terpusat, charts performa, demografi audiens
+- **Analytics Dashboard** — KPI terpusat, charts performa, demografi audiens, sync otomatis dari platform API
+- **Platform Import** — Tarik video/post yang sudah ada di TikTok & Instagram langsung ke dashboard
 - **AI Caption Generator** — Generate caption Bahasa Indonesia via Claude API
 - **Laporan PDF** — Export laporan white-label untuk klien
 - **Kalender Konten** — Overview bulanan semua konten terjadwal
@@ -78,13 +79,18 @@ app/
 │   ├── PostController.php      # CRUD post
 │   ├── MediaController.php     # Upload via Spatie Media Library
 │   ├── CalendarController.php  # Calendar index + JSON API
-│   ├── SocialAccountController.php  # OAuth Instagram/Facebook
+│   ├── SocialAccountController.php  # OAuth Instagram/Facebook/TikTok (PKCE)
 │   └── MarketingController.php # Landing page + waitlist
 ├── Http/Requests/
 │   └── StorePostRequest.php    # Validasi post (pesan Bahasa Indonesia)
 ├── Models/            # User, Post, SocialAccount, Subscription, Waitlist, dll
 ├── Services/
 │   ├── PostService.php         # createPost, schedulePost, saveDraft
+│   ├── AnalyticsService.php    # KPI, overview, per-post detail, vs avg
+│   ├── AnalyticsSyncService.php # Import posts + sync metrics dari platform API
+│   ├── AIService.php           # Claude API — caption, hashtag, best-time
+│   ├── ReportService.php       # Generate client report (queue-based)
+│   ├── NotificationService.php # In-app notifications + setting toggles
 │   ├── InstagramService.php    # Saloon v3 — publish, insights
 │   └── FacebookService.php     # Saloon v3 — publish, insights
 ├── Jobs/
@@ -104,7 +110,10 @@ resources/js/
 │   ├── Dashboard/     # Index
 │   ├── Compose/       # Index — 2-col editor, IG preview, hashtag chips
 │   ├── Calendar/      # Index — monthly grid + weekly table
-│   └── Marketing/     # Index (landing page), Waitlist
+│   ├── Analytics/     # Overview, PerKonten (table + sync), ContentDetail (video preview)
+│   ├── Reports/       # Index — generate + download client reports
+│   ├── Settings/      # Index — profile, platform connections, notifications, billing
+│   └── Marketing/     # Index (landing page), Waitlist, Privacy, Terms
 ├── Layouts/           # AppLayout (sidebar + topbar + hatch SVG defs)
 ├── Components/
 │   ├── calendar/      # CalendarGrid, CalendarCell, WeeklyTable
@@ -144,9 +153,20 @@ Lihat [`../docs/TASK_LIST.md`](../docs/TASK_LIST.md) untuk progress lengkap.
 |---|---|
 | Phase 1 — Foundation & Auth | ✅ Done (v0.1.0) |
 | Phase 2 — Content Management | ✅ Done (v0.2.0) |
-| Phase 3 — Analytics & AI | 🔲 Planned |
-| Phase 4 — Reports & Settings | 🔲 Planned |
+| Phase 3 — Analytics & AI | ✅ Done (v0.4.0) |
+| Phase 4 — Reports, Settings & Notifications | ✅ Done (v0.4.0) |
+| Phase 4.5 — Platform OAuth & Analytics Sync | ✅ Done (v0.4.1) |
 | Phase 5 — Polish & Deploy | 🔲 Planned |
+
+### Platform API Status
+
+| Platform | OAuth | Publish | Import | Analytics Sync |
+|---|---|---|---|---|
+| TikTok | ✅ Approved | 🔲 | ✅ | ✅ |
+| Instagram | ✅ | 🔲 | ✅ | 🔲 |
+| Facebook | ✅ | 🔲 | 🔲 | 🔲 |
+| YouTube | 🔲 | 🔲 | 🔲 | 🔲 |
+| Twitter/X | 🔲 | 🔲 | 🔲 | 🔲 |
 
 ## License
 

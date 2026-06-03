@@ -45,4 +45,22 @@ return [
         'client_secret' => env('FACEBOOK_APP_SECRET'),
     ],
 
+    'tiktok' => [
+        'client_key'    => env('TIKTOK_CLIENT_KEY'),
+        'client_secret' => env('TIKTOK_CLIENT_SECRET'),
+        'api_base'      => 'https://open.tiktokapis.com',
+        'auth_base'     => 'https://www.tiktok.com',
+        'sandbox'       => env('TIKTOK_SANDBOX', true),
+    ],
+
+    'youtube' => [
+        'client_id'     => env('YOUTUBE_CLIENT_ID'),
+        'client_secret' => env('YOUTUBE_CLIENT_SECRET'),
+    ],
+
+    'twitter' => [
+        'client_id'     => env('TWITTER_CLIENT_ID'),
+        'client_secret' => env('TWITTER_CLIENT_SECRET'),
+    ],
+
 ];

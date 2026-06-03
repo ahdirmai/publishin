@@ -20,6 +20,16 @@ class MarketingController extends Controller
         return Inertia::render('Marketing/Waitlist', compact('count'));
     }
 
+    public function privacy(): Response
+    {
+        return Inertia::render('Marketing/Privacy');
+    }
+
+    public function terms(): Response
+    {
+        return Inertia::render('Marketing/Terms');
+    }
+
     public function storeWaitlist(Request $request)
     {
         $data = $request->validate([

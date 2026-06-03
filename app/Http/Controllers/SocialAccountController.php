@@ -17,16 +17,44 @@ class SocialAccountController extends Controller
         match ($platform) {
             'instagram' => null,
             'facebook'  => null,
+            'tiktok'    => null,
             default     => abort(404),
         };
 
         if ($platform === 'instagram') {
-            $url = 'https://api.instagram.com/oauth/authorize?' . http_build_query([
-                'client_id'     => config('services.instagram.client_id'),
+            // Instagram Graph API requires OAuth through Facebook dialog
+            // User must have IG Business/Creator account linked to a FB Page
+            $url = 'https://www.facebook.com/v19.0/dialog/oauth?' . http_build_query([
+                'client_id'     => config('services.facebook.client_id'),
                 'redirect_uri'  => route('social.callback', 'instagram'),
-                'scope'         => 'instagram_basic,instagram_content_publish,instagram_manage_insights',
+                'scope'         => 'pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish',
                 'response_type' => 'code',
                 'state'         => csrf_token(),
+            ]);
+
+            return redirect($url);
+        }
+
+        if ($platform === 'tiktok') {
+            $codeVerifier  = bin2hex(random_bytes(32));
+            $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+            $state         = \Illuminate\Support\Str::random(16);
+
+            session([
+                'tiktok_code_verifier' => $codeVerifier,
+                'tiktok_state'         => $state,
+            ]);
+
+            $scopes = 'user.info.basic,user.info.profile,user.info.stats,video.list,video.upload,video.publish';
+
+            $url = 'https://www.tiktok.com/v2/auth/authorize/?' . http_build_query([
+                'client_key'            => config('services.tiktok.client_key'),
+                'response_type'         => 'code',
+                'scope'                 => $scopes,
+                'redirect_uri'          => route('social.callback', 'tiktok'),
+                'state'                 => $state,
+                'code_challenge'        => $codeChallenge,
+                'code_challenge_method' => 'S256',
             ]);
 
             return redirect($url);
@@ -52,8 +80,12 @@ class SocialAccountController extends Controller
         // Basic validation
         $request->validate(['code' => 'required']);
 
-        // CSRF check
-        if ($request->query('state') !== csrf_token()) {
+        // CSRF / state check
+        if ($platform === 'tiktok') {
+            if ($request->query('state') !== session('tiktok_state')) {
+                return redirect()->route('settings.index')->withErrors(['error' => 'State mismatch — coba lagi.']);
+            }
+        } elseif ($request->query('state') !== csrf_token()) {
             return redirect()->back()->withErrors(['error' => 'CSRF mismatch']);
         }
 
@@ -63,6 +95,10 @@ class SocialAccountController extends Controller
 
         if ($platform === 'facebook') {
             return $this->handleFacebookCallback($request);
+        }
+
+        if ($platform === 'tiktok') {
+            return $this->handleTikTokCallback($request);
         }
 
         abort(404);
@@ -89,11 +125,10 @@ class SocialAccountController extends Controller
     private function handleInstagramCallback(Request $request)
     {
         try {
-            // Exchange authorization code for an access token
-            $tokenResponse = Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
-                'client_id'     => config('services.instagram.client_id'),
-                'client_secret' => config('services.instagram.client_secret'),
-                'grant_type'    => 'authorization_code',
+            // Exchange code for user access token via Graph API
+            $tokenResponse = Http::get('https://graph.facebook.com/v19.0/oauth/access_token', [
+                'client_id'     => config('services.facebook.client_id'),
+                'client_secret' => config('services.facebook.client_secret'),
                 'redirect_uri'  => route('social.callback', 'instagram'),
                 'code'          => $request->query('code'),
             ]);
@@ -101,40 +136,72 @@ class SocialAccountController extends Controller
             $tokenData = $tokenResponse->json();
 
             if (! isset($tokenData['access_token'])) {
-                throw new \RuntimeException('Failed to retrieve Instagram access token.');
+                $detail = $tokenData['error']['message'] ?? json_encode($tokenData);
+                throw new \RuntimeException('Gagal mendapatkan token: ' . $detail);
             }
 
-            // Fetch basic profile information
-            $profileResponse = Http::get('https://graph.instagram.com/me', [
-                'fields'       => 'id,username',
-                'access_token' => $tokenData['access_token'],
+            $userToken = $tokenData['access_token'];
+
+            // Get FB Pages managed by user
+            $pagesResponse = Http::get('https://graph.facebook.com/v19.0/me/accounts', [
+                'access_token' => $userToken,
+                'fields'       => 'id,name,access_token,instagram_business_account',
             ]);
 
-            $profile = $profileResponse->json();
+            $pages = $pagesResponse->json('data', []);
 
-            if (! isset($profile['id'])) {
-                throw new \RuntimeException('Failed to retrieve Instagram profile.');
+            if (empty($pages)) {
+                throw new \RuntimeException('Tidak ada Facebook Page ditemukan. Pastikan akun Instagram tipe Business/Creator dan sudah dihubungkan ke Facebook Page.');
             }
 
-            // Create or update the SocialAccount record
-            SocialAccount::updateOrCreate(
-                [
-                    'user_id'          => auth()->id(),
-                    'platform'         => 'instagram',
-                    'platform_user_id' => $profile['id'],
-                ],
-                [
-                    'username'     => $profile['username'],
-                    'display_name' => $profile['username'],
-                    'access_token' => $tokenData['access_token'],
-                    'is_active'    => true,
-                ]
-            );
+            $connected = 0;
+            foreach ($pages as $page) {
+                if (empty($page['instagram_business_account']['id'])) {
+                    continue;
+                }
+
+                $igId        = $page['instagram_business_account']['id'];
+                $pageToken   = $page['access_token'];
+
+                // Get IG account details
+                $igResponse = Http::get("https://graph.facebook.com/v19.0/{$igId}", [
+                    'fields'       => 'id,username,name,followers_count',
+                    'access_token' => $pageToken,
+                ]);
+
+                $ig = $igResponse->json();
+
+                if (! isset($ig['id'])) {
+                    continue;
+                }
+
+                SocialAccount::updateOrCreate(
+                    [
+                        'user_id'          => auth()->id(),
+                        'platform'         => 'instagram',
+                        'platform_user_id' => $ig['id'],
+                    ],
+                    [
+                        'username'       => $ig['username'] ?? $ig['name'],
+                        'display_name'   => $ig['name'] ?? $ig['username'],
+                        'access_token'   => $pageToken,
+                        'page_id'        => $page['id'],
+                        'follower_count' => $ig['followers_count'] ?? 0,
+                        'is_active'      => true,
+                    ]
+                );
+                $connected++;
+            }
+
+            if ($connected === 0) {
+                throw new \RuntimeException('Tidak ada akun Instagram Business/Creator yang terhubung ke Facebook Page Anda.');
+            }
+
         } catch (\Throwable $e) {
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('settings.index')->withErrors(['error' => $e->getMessage()]);
         }
 
-        return redirect()->route('dashboard')->with('success', 'Akun Instagram berhasil dihubungkan.');
+        return redirect()->route('settings.index')->with('success', 'Akun Instagram berhasil dihubungkan.');
     }
 
     private function handleFacebookCallback(Request $request)
@@ -188,5 +255,94 @@ class SocialAccountController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'Halaman Facebook berhasil dihubungkan.');
+    }
+
+    private function handleTikTokCallback(Request $request)
+    {
+        // TikTok returns error param when user cancels
+        if ($request->query('error')) {
+            return redirect()->route('settings.index')
+                ->withErrors(['error' => 'Koneksi TikTok dibatalkan: ' . $request->query('error_description', 'unknown')]);
+        }
+
+        try {
+            \Log::info('TikTok callback', [
+                'has_code'          => (bool) $request->query('code'),
+                'state_match'       => $request->query('state') === session('tiktok_state'),
+                'has_verifier'      => (bool) session('tiktok_code_verifier'),
+                'auth_id'           => auth()->id(),
+            ]);
+
+            // Exchange code for access token (PKCE — include code_verifier)
+            $tokenResponse = Http::asForm()->post('https://open.tiktokapis.com/v2/oauth/token/', [
+                'client_key'    => config('services.tiktok.client_key'),
+                'client_secret' => config('services.tiktok.client_secret'),
+                'code'          => $request->query('code'),
+                'grant_type'    => 'authorization_code',
+                'redirect_uri'  => route('social.callback', 'tiktok'),
+                'code_verifier' => session('tiktok_code_verifier'),
+            ]);
+
+            $tokenData = $tokenResponse->json();
+
+            \Log::info('TikTok token response', ['data' => $tokenData]);
+
+            // TikTok returns token at root OR nested under 'data' depending on version
+            $token = $tokenData['access_token'] ?? $tokenData['data']['access_token'] ?? null;
+
+            if (! $token) {
+                throw new \RuntimeException('Gagal mendapatkan TikTok access token: ' . json_encode($tokenData));
+            }
+
+            $accessToken  = $token;
+            $refreshToken = $tokenData['refresh_token'] ?? $tokenData['data']['refresh_token'] ?? null;
+            $expiresIn    = $tokenData['expires_in'] ?? $tokenData['data']['expires_in'] ?? 86400;
+            $openId       = $tokenData['open_id'] ?? $tokenData['data']['open_id'];
+
+            // Fetch user profile (optional — fallback to open_id if fails)
+            $displayName    = $openId;
+            $followerCount  = 0;
+
+            try {
+                $profileResponse = Http::withHeaders([
+                    'Authorization' => "Bearer {$accessToken}",
+                ])->get('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url,follower_count');
+
+                $profileData = $profileResponse->json();
+                \Log::info('TikTok profile response', ['data' => $profileData]);
+
+                $user          = $profileData['data']['user'] ?? [];
+                $displayName   = $user['display_name'] ?? $openId;
+                $followerCount = $user['follower_count'] ?? 0;
+            } catch (\Throwable $e) {
+                \Log::warning('TikTok profile fetch failed, using open_id as fallback', ['error' => $e->getMessage()]);
+            }
+
+            SocialAccount::updateOrCreate(
+                [
+                    'user_id'          => auth()->id(),
+                    'platform'         => 'tiktok',
+                    'platform_user_id' => $openId,
+                ],
+                [
+                    'username'         => $displayName,
+                    'display_name'     => $displayName,
+                    'access_token'     => $accessToken,
+                    'refresh_token'    => $refreshToken,
+                    'token_expires_at' => now()->addSeconds($expiresIn),
+                    'follower_count'   => $followerCount,
+                    'is_active'        => true,
+                ]
+            );
+
+            \Log::info('TikTok account saved', ['open_id' => $openId, 'user_id' => auth()->id()]);
+
+            session()->forget(['tiktok_code_verifier', 'tiktok_state']);
+
+        } catch (\Throwable $e) {
+            return redirect()->route('settings.index')->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('settings.index')->with('success', 'Akun TikTok berhasil dihubungkan.');
     }
 }

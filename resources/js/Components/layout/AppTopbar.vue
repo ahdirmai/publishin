@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 
 defineProps<{ title?: string }>()
+
+const page = usePage()
+const notifCount = computed(() => (page.props.notif_count as number) ?? 0)
 
 function logout() {
     router.post(route('logout'))
@@ -15,7 +19,8 @@ function logout() {
             <button
                 class="text-[10px] uppercase tracking-wide text-ink-2 border border-[rgba(28,27,26,0.22)] px-2.5 py-1 hover:border-ink transition-colors"
                 style="border-radius: 2px">
-                🔔 <span class="ml-1 text-accent-r font-bold">5</span>
+                🔔
+                <span v-if="notifCount > 0" class="ml-1 text-accent-r font-bold">{{ notifCount }}</span>
             </button>
             <a href="/compose"
                 class="text-[10px] uppercase tracking-wide font-semibold bg-ink text-paper border-[1.5px] border-ink px-3 py-1.5 hover:bg-accent-r hover:border-accent-r transition-colors"

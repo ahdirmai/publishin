@@ -78,6 +78,49 @@ function toggleAccount(id: number) {
 
 const caption = ref('')
 const aiLoading = ref(false)
+const aiError   = ref<string | null>(null)
+
+async function generateAICaption() {
+  const platform = firstPlatform.value ?? 'instagram'
+  if (!caption.value && !platform) return
+  aiLoading.value = true
+  aiError.value   = null
+  try {
+    const res = await fetch(route('api.ai.caption'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content ?? '' },
+      body: JSON.stringify({ platform, topic: caption.value || platform, tone: 'santai' }),
+    })
+    const data = await res.json()
+    if (data.error) { aiError.value = data.error; return }
+    caption.value = data.caption ?? caption.value
+  } catch (e: any) {
+    aiError.value = 'Gagal generate caption. Coba lagi.'
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+async function fetchAIHashtags() {
+  if (!caption.value) return
+  aiLoading.value = true
+  aiError.value   = null
+  try {
+    const res = await fetch(route('api.ai.hashtags'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement)?.content ?? '' },
+      body: JSON.stringify({ caption: caption.value, platform: firstPlatform.value ?? 'instagram' }),
+    })
+    const data = await res.json()
+    if (data.hashtags?.length) {
+      suggestedHashtags.value = data.hashtags
+    }
+  } catch (_) {
+    // Silently fail — hashtag list stays static
+  } finally {
+    aiLoading.value = false
+  }
+}
 const scheduledDate = ref(props.prefilledDate ?? '')
 const scheduledTime = ref('')
 
@@ -134,7 +177,7 @@ function previewInitials(account: SocialAccount | null): string {
 
 // ─── Hashtag suggestions ──────────────────────────────────────────────────────
 
-const suggestedHashtags = [
+const suggestedHashtags = ref([
   '#ContentCreator',
   '#MarketingDigital',
   '#TipsKonten',
@@ -143,7 +186,7 @@ const suggestedHashtags = [
   '#SoloCreator',
   '#BisnisDaring',
   '#KontenIndonesia',
-]
+])
 
 function appendHashtag(tag: string) {
   const normalised = tag.startsWith('#') ? tag : `#${tag}`
@@ -279,7 +322,7 @@ onMounted(() => {
               type="button"
               class="btn-sm"
               :disabled="aiLoading"
-              @click="aiLoading = true"
+              @click="generateAICaption"
             >
               <span v-if="aiLoading" class="ai-spinner">·</span>
               ✦ AI Generate
@@ -435,7 +478,9 @@ onMounted(() => {
         <div class="card">
           <div class="hashtag-header">
             <span class="slabel">Hashtag Saran</span>
-            <span class="hashtag-badge-ai">AI</span>
+            <button type="button" class="btn-sm" :disabled="aiLoading" @click="fetchAIHashtags">
+              ✦ Saran AI
+            </button>
           </div>
           <div class="hchip-wrap" style="margin-top: 10px;">
             <HashtagChip
