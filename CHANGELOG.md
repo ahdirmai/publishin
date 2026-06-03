@@ -1,6 +1,6 @@
 # Changelog
 
-Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versi mengikuti [Semantic Versioning](https://semver.org/).
 
 ---
 
