@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { ref } from 'vue'
 import AppSidebar from '@/Components/layout/AppSidebar.vue'
 import AppTopbar from '@/Components/layout/AppTopbar.vue'
 import StickyNote from '@/Components/layout/StickyNote.vue'
-import { useStickyNote } from '@/composables/useStickyNote'
 
 defineProps<{
     title?: string
     screen?: string
 }>()
 
-const page = usePage()
+const sidebarOpen = ref(false)
 </script>
 
 <template>
@@ -34,18 +32,30 @@ const page = usePage()
     </svg>
 
     <div class="flex h-screen overflow-hidden grid-paper">
+        <!-- Mobile overlay -->
+        <div
+            v-if="sidebarOpen"
+            class="fixed inset-0 bg-ink/50 z-40 lg:hidden"
+            @click="sidebarOpen = false"
+        />
+
         <!-- Sidebar -->
-        <AppSidebar :screen="screen" />
+        <div
+            class="fixed inset-y-0 left-0 z-50 lg:static lg:z-auto transition-transform duration-200"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        >
+            <AppSidebar :screen="screen" @close="sidebarOpen = false" />
+        </div>
 
         <!-- Main content area -->
-        <div class="flex flex-col flex-1 overflow-hidden">
-            <AppTopbar :title="title" />
+        <div class="flex flex-col flex-1 overflow-hidden min-w-0">
+            <AppTopbar :title="title" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
 
             <!-- Sticky note annotation -->
             <StickyNote v-if="screen" :screen="screen" />
 
             <!-- Page content -->
-            <main class="flex-1 overflow-y-auto p-6">
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
                 <slot />
             </main>
         </div>

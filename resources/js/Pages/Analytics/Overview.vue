@@ -210,8 +210,17 @@ function erClass(er: number): string {
         <!-- Overview panel -->
         <div v-if="activeTab === 'overview'">
 
+            <!-- Empty state: no synced data -->
+            <div
+                v-if="!data.reachByPlatform?.length && !data.topPosts?.length"
+                class="mb-4 flex items-center justify-between px-4 py-3 border border-dashed border-ink-3/25 text-xs font-sans text-ink-3"
+                style="border-radius:2px">
+                <span>Belum ada data analitik — hubungkan platform dan klik Sync Data.</span>
+                <a :href="route('settings.index')" class="text-accent-b hover:underline ml-4 shrink-0">Hubungkan Platform →</a>
+            </div>
+
             <!-- KPI row -->
-            <div class="grid grid-cols-4 gap-3 mb-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 <KpiCard
                     v-for="(kpi, i) in data.kpis" :key="i"
                     :label="kpi.label"
@@ -223,7 +232,7 @@ function erClass(er: number): string {
             </div>
 
             <!-- Charts -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
 
                 <!-- Reach per Platform -->
                 <div class="bg-paper border-[1.5px] border-ink p-4" style="border-radius:2px">
@@ -280,7 +289,7 @@ function erClass(er: number): string {
             </div>
 
             <!-- Top posts + Audience -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
                 <!-- Top 5 posts -->
                 <div class="bg-paper border-[1.5px] border-ink p-4" style="border-radius:2px">

@@ -166,7 +166,7 @@ const notifItems = [
             {{ profileError }}
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
             <!-- Left column: Profile + Platform connections -->
             <div class="flex flex-col gap-3">

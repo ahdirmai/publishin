@@ -179,7 +179,7 @@ function statusLabel(s: string): { text: string; color: string } {
         </div>
 
         <!-- Config + Preview row -->
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
 
             <!-- Config -->
             <div class="bg-paper border-[1.5px] border-ink p-4" style="border-radius:2px">

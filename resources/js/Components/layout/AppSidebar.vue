@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3'
+import { Link } from '@inertiajs/vue3'
 
 defineProps<{ screen?: string }>()
+defineEmits<{ (e: 'close'): void }>()
 
 const navItems = [
     { name: 'Dashboard',   href: '/dashboard',       screen: 'dashboard',  badge: null },
@@ -14,11 +15,18 @@ const navItems = [
 </script>
 
 <template>
-    <aside class="w-48 flex-shrink-0 border-r border-[rgba(28,27,26,0.22)] bg-paper flex flex-col">
-        <!-- Logo -->
-        <div class="px-4 pt-5 pb-3 border-b border-[rgba(28,27,26,0.22)]">
-            <div class="font-serif italic font-bold text-2xl text-ink leading-none">P·</div>
-            <div class="text-[9px] uppercase tracking-widest text-ink-3 mt-0.5">Pro Plan</div>
+    <aside class="w-48 h-full flex-shrink-0 border-r border-[rgba(28,27,26,0.22)] bg-paper flex flex-col">
+        <!-- Logo + close button -->
+        <div class="px-4 pt-5 pb-3 border-b border-[rgba(28,27,26,0.22)] flex items-start justify-between">
+            <div>
+                <div class="font-serif italic font-bold text-2xl text-ink leading-none">P·</div>
+                <div class="text-[9px] uppercase tracking-widest text-ink-3 mt-0.5">Pro Plan</div>
+            </div>
+            <button
+                class="lg:hidden text-ink-3 hover:text-ink p-0.5 mt-0.5"
+                @click="$emit('close')"
+                aria-label="Tutup menu"
+            >✕</button>
         </div>
 
         <!-- Nav -->
@@ -32,8 +40,8 @@ const navItems = [
                     ? 'bg-accent-r/10 border-l-2 border-accent-r text-accent-r font-semibold'
                     : 'text-ink-2 hover:text-ink hover:bg-ink/5'"
                 style="border-radius: 2px"
+                @click="$emit('close')"
             >
-                <!-- Checkbox indicator -->
                 <span class="text-[10px] w-3 shrink-0">
                     {{ screen === item.screen ? '✓' : '○' }}
                 </span>

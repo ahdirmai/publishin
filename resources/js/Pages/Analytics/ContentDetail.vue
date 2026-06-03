@@ -146,7 +146,7 @@ const insightIcons: Record<string, string> = {
         </div>
 
         <!-- Preview row: post preview + video player -->
-        <div class="grid gap-3 mb-4" :class="data.content_type === 'video' ? 'grid-cols-2' : 'grid-cols-1'">
+        <div class="grid gap-3 mb-4" :class="data.content_type === 'video' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'">
 
             <!-- Post preview card -->
             <div class="bg-paper border-[1.5px] border-ink p-4" style="border-radius:2px">
@@ -247,7 +247,7 @@ const insightIcons: Record<string, string> = {
         </div>
 
         <!-- KPI row (7 cols) -->
-        <div class="grid grid-cols-7 gap-2 mb-4">
+        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
             <div v-for="(kpi, i) in data.kpis" :key="i"
                 class="bg-paper border border-ink-3/20 p-3 text-center"
                 style="border-radius:2px">
@@ -262,7 +262,7 @@ const insightIcons: Record<string, string> = {
         </div>
 
         <!-- Charts row -->
-        <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
 
             <!-- Engagement distribution -->
             <div class="bg-paper border-[1.5px] border-ink p-4" style="border-radius:2px">

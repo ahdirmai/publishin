@@ -503,9 +503,14 @@ onMounted(() => {
 /* ── Layout ────────────────────────────────────────────────────────────────── */
 .g2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
+}
+@media (min-width: 1024px) {
+  .g2 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .stack {
