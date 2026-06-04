@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { ref, computed, onMounted } from 'vue'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
+
+const page = usePage()
+const authUser = computed(() => (page.props.auth as any)?.user ?? null)
+
+function logout() {
+  router.post(route('logout'))
+}
 
 const navOpen = ref(false)
 const isYearly = ref(false)
@@ -95,8 +102,14 @@ onMounted(() => {
         <span class="nav-link" @click="navOpen = false"><a href="#harga">Harga</a></span>
         <span class="nav-link" @click="navOpen = false"><a href="#testimoni">Testimoni</a></span>
         <span class="nav-link" @click="navOpen = false"><a href="#faq">FAQ</a></span>
-        <Link href="/login" class="nav-cta-ghost">Masuk</Link>
-        <Link href="/waitlist" class="nav-cta">Coba Gratis</Link>
+        <template v-if="authUser">
+          <Link href="/dashboard" class="nav-cta-ghost">Dashboard</Link>
+          <button class="nav-cta" @click="logout">Keluar</button>
+        </template>
+        <template v-else>
+          <Link href="/login" class="nav-cta-ghost">Masuk</Link>
+          <Link href="/waitlist" class="nav-cta">Coba Gratis</Link>
+        </template>
       </div>
     </nav>
 
@@ -635,8 +648,8 @@ nav {
 .nav-logo { font-family: var(--f-disp); font-style: italic; font-weight: 700; font-size: 22px; letter-spacing: -1px; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 .nav-links { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; align-items: center; }
 .nav-link { font-size: 11px; letter-spacing: .08em; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; color: var(--ink-2); cursor: pointer; }
-.nav-cta-ghost { border: var(--bdr); padding: 4px 12px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: var(--paper); color: var(--ink); cursor: pointer; }
-.nav-cta { border: var(--bdr); padding: 4px 14px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: var(--ink); color: #fff; cursor: pointer; }
+.nav-cta-ghost { border: var(--bdr); padding: 4px 12px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: var(--paper); color: var(--ink); cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+.nav-cta { border: var(--bdr); padding: 4px 14px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: var(--ink); color: #fff; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
 
 /* Hamburger */
 .nav-hamburger { display: none; flex-direction: column; gap: 4px; cursor: pointer; padding: 4px; border: none; background: none; }

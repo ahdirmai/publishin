@@ -172,6 +172,7 @@ Lihat [`../docs/TASK_LIST.md`](../docs/TASK_LIST.md) untuk progress lengkap.
 | Phase 4.5 — Platform OAuth & Analytics Sync | ✅ Done (v0.4.1) |
 | Phase 5 — Polish & Deploy | ✅ Done (v0.5.0) |
 | Phase 5.1 — TikTok Publishing | ✅ Done (v0.5.1) |
+| Phase 5.2 — Auth UX + Scheduling Fixes | ✅ Done (v0.5.2) |
 
 ### Platform API Status
 

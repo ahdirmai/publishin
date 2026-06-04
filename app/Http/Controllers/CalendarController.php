@@ -47,15 +47,17 @@ class CalendarController extends Controller
 
         $posts = Post::query()
             ->where('user_id', $userId)
-            ->whereIn('status', ['draft', 'scheduled', 'publishing', 'published'])
-            ->whereBetween('scheduled_at', [$startOfMonth, $endOfMonth])
-            ->orWhere(function ($q) use ($userId, $startOfMonth, $endOfMonth): void {
-                $q->where('user_id', $userId)
-                    ->where('status', 'published')
-                    ->whereBetween('published_at', [$startOfMonth, $endOfMonth]);
+            ->where(function ($q) use ($startOfMonth, $endOfMonth): void {
+                $q->where(function ($q) use ($startOfMonth, $endOfMonth): void {
+                    $q->whereIn('status', ['draft', 'scheduled', 'publishing', 'published'])
+                        ->whereBetween('scheduled_at', [$startOfMonth, $endOfMonth]);
+                })->orWhere(function ($q) use ($startOfMonth, $endOfMonth): void {
+                    $q->where('status', 'published')
+                        ->whereBetween('published_at', [$startOfMonth, $endOfMonth]);
+                });
             })
             ->with(['versions.socialAccount:id,platform,username'])
-            ->orderBy('scheduled_at')
+            ->orderByRaw('COALESCE(scheduled_at, published_at) ASC')
             ->get();
 
         return $posts->map(function (Post $post): array {
