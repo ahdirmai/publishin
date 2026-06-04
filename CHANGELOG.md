@@ -4,6 +4,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versi
 
 ---
 
+## [0.5.2] — 2026-06-04
+
+Auth UX fixes + scheduling bug fixes.
+
+### Added
+- `AppTopbar.vue` — tombol "Keluar" muncul saat user sudah login
+- `PollTikTokPublishStatus` command — poll async TikTok publish status setiap 5 menit, update version → `published` saat `PUBLISH_COMPLETE`, → `failed` saat `FAILED`/`SPAM_ACCOUNT_BLOCKED`
+
+### Fixed
+- Landing page (`Marketing/Index.vue`) — navbar tampilkan "Dashboard" + "Keluar" saat sudah login, bukan "Masuk" + "Coba Gratis"
+- `CalendarController::getMonthPosts()` — query `orWhere` sekarang digroup dalam satu `where()` closure, cegah kebocoran user scope; `orderBy` pakai `COALESCE(scheduled_at, published_at)` agar imported posts (scheduled_at NULL) sort benar
+- `PublishScheduledPost` — `$backoff` ganti dari `int 60` ke `array [60, 120, 300]` (exponential backoff)
+
+---
+
 ## [0.5.1] — 2026-06-04
 
 TikTok video publishing.

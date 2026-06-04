@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('publishin:process-scheduled')->everyMinute();
+Schedule::command('publishin:poll-tiktok-status')->everyFiveMinutes();
 Schedule::command('publishin:fetch-account-analytics')->dailyAt('02:00');

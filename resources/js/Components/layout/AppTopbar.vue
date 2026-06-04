@@ -7,6 +7,7 @@ defineEmits<{ (e: 'toggle-sidebar'): void }>()
 
 const page = usePage()
 const notifCount = computed(() => (page.props.notif_count as number) ?? 0)
+const user = computed(() => (page.props.auth as any)?.user)
 
 function logout() {
     router.post(route('logout'))
@@ -40,6 +41,14 @@ function logout() {
                 style="border-radius: 2px">
                 + Buat Konten
             </a>
+            <button
+                v-if="user"
+                class="text-[10px] uppercase tracking-wide text-ink-2 border border-[rgba(28,27,26,0.22)] px-2 lg:px-2.5 py-1 hover:border-accent-r hover:text-accent-r transition-colors"
+                style="border-radius: 2px"
+                @click="logout"
+            >
+                Keluar
+            </button>
         </div>
     </header>
 </template>
